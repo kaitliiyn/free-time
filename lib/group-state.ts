@@ -192,29 +192,60 @@ class GroupState {
   }
 
   // Subscribe to real-time updates for group members
+  // Falls back to polling if Realtime is not available
   subscribeToMembers(
     groupCode: string,
     callback: (members: GroupMember[]) => void
   ) {
-    const channel = supabase
-      .channel(`members:${groupCode}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'members',
-          filter: `group_code=eq.${groupCode}`,
-        },
-        async () => {
-          const members = await this.getGroupMembers(groupCode)
-          callback(members)
-        }
-      )
-      .subscribe()
+    if (!isSupabaseConfigured()) {
+      // If Supabase not configured, just poll every 5 seconds
+      const interval = setInterval(async () => {
+        const members = await this.getGroupMembers(groupCode)
+        callback(members)
+      }, 5000)
+      return () => clearInterval(interval)
+    }
 
-    return () => {
-      supabase.removeChannel(channel)
+    try {
+      const channel = supabase
+        .channel(`members:${groupCode}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'members',
+            filter: `group_code=eq.${groupCode}`,
+          },
+          async () => {
+            const members = await this.getGroupMembers(groupCode)
+            callback(members)
+          }
+        )
+        .subscribe()
+
+      // Also set up polling as fallback in case Realtime doesn't work
+      const pollInterval = setInterval(async () => {
+        const members = await this.getGroupMembers(groupCode)
+        callback(members)
+      }, 3000) // Poll every 3 seconds as backup
+
+      return () => {
+        try {
+          supabase.removeChannel(channel)
+        } catch (e) {
+          // Ignore errors if channel doesn't exist
+        }
+        clearInterval(pollInterval)
+      }
+    } catch (error) {
+      // If Realtime subscription fails, fall back to polling
+      console.warn('Realtime subscription failed, using polling fallback:', error)
+      const interval = setInterval(async () => {
+        const members = await this.getGroupMembers(groupCode)
+        callback(members)
+      }, 3000)
+      return () => clearInterval(interval)
     }
   }
 }

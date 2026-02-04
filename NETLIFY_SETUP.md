@@ -32,14 +32,18 @@ This guide will help you configure Supabase for your Netlify deployment so that 
 6. Click **"Run"** (or press Cmd/Ctrl + Enter)
 7. You should see "Success. No rows returned" - this means the tables were created!
 
-## Step 4: Enable Realtime (Important!)
+## Step 4: Enable Realtime (Optional - App works without it!)
 
+**Note:** Supabase Realtime may be in private alpha. The app will automatically use polling as a fallback if Realtime is not available.
+
+If Realtime is available in your project:
 1. In your Supabase project, go to **Database** → **Replication** (in the left sidebar)
 2. Find these tables in the list:
    - `members`
    - `schedules`
-3. Toggle the switch to **ON** for both tables
+3. Toggle the switch to **ON** for both tables (if available)
    - This enables real-time updates so users see changes instantly
+   - If you don't see this option or it's disabled, the app will automatically poll for updates every 3 seconds
 
 ## Step 5: Configure Environment Variables in Netlify
 

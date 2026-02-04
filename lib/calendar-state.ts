@@ -172,29 +172,60 @@ class CalendarState {
   }
 
   // Subscribe to real-time updates for schedules
+  // Falls back to polling if Realtime is not available
   subscribeToSchedules(
     groupCode: string,
     callback: (blocks: BusyBlock[]) => void
   ) {
-    const channel = supabase
-      .channel(`schedules:${groupCode}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'schedules',
-          filter: `group_code=eq.${groupCode}`,
-        },
-        async () => {
-          const blocks = await this.getBlocks(groupCode)
-          callback(blocks)
-        }
-      )
-      .subscribe()
+    if (!isSupabaseConfigured()) {
+      // If Supabase not configured, just poll every 5 seconds
+      const interval = setInterval(async () => {
+        const blocks = await this.getBlocks(groupCode)
+        callback(blocks)
+      }, 5000)
+      return () => clearInterval(interval)
+    }
 
-    return () => {
-      supabase.removeChannel(channel)
+    try {
+      const channel = supabase
+        .channel(`schedules:${groupCode}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'schedules',
+            filter: `group_code=eq.${groupCode}`,
+          },
+          async () => {
+            const blocks = await this.getBlocks(groupCode)
+            callback(blocks)
+          }
+        )
+        .subscribe()
+
+      // Also set up polling as fallback in case Realtime doesn't work
+      const pollInterval = setInterval(async () => {
+        const blocks = await this.getBlocks(groupCode)
+        callback(blocks)
+      }, 3000) // Poll every 3 seconds as backup
+
+      return () => {
+        try {
+          supabase.removeChannel(channel)
+        } catch (e) {
+          // Ignore errors if channel doesn't exist
+        }
+        clearInterval(pollInterval)
+      }
+    } catch (error) {
+      // If Realtime subscription fails, fall back to polling
+      console.warn('Realtime subscription failed, using polling fallback:', error)
+      const interval = setInterval(async () => {
+        const blocks = await this.getBlocks(groupCode)
+        callback(blocks)
+      }, 3000)
+      return () => clearInterval(interval)
     }
   }
 }
