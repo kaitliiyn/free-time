@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Calendar as CalendarIcon, Share2, Check, AlertCircle } from "lucide-react"
+import { Calendar as CalendarIcon, Share2, Check, AlertCircle, X } from "lucide-react"
 import { Calendar } from "@/components/calendar"
 import { FreeSlotsSidebar } from "@/components/free-slots-sidebar"
 import { GroupMembers } from "@/components/group-members"
@@ -25,6 +25,7 @@ export function Dashboard({ userName, userId, groupCode }: DashboardProps) {
   })
   const [linkCopied, setLinkCopied] = useState(false)
   const [memberCount, setMemberCount] = useState(0)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // Ensure user is in the group
   useEffect(() => {
@@ -71,7 +72,7 @@ export function Dashboard({ userName, userId, groupCode }: DashboardProps) {
 
   return (
     <div className="min-h-screen flex">
-      <div className="flex-1 p-8 overflow-y-auto min-w-0">
+      <div className="flex-1 p-4 md:p-8 overflow-y-auto min-w-0">
         <div className="container max-w-7xl mx-auto space-y-8">
           {!supabaseConfigured && (
             <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-sm p-4 mb-4">
@@ -86,8 +87,16 @@ export function Dashboard({ userName, userId, groupCode }: DashboardProps) {
               </div>
             </div>
           )}
-          <header className="text-center mb-12 relative">
-            <div className="absolute top-0 right-0">
+          <header className="text-center mb-8 md:mb-12 relative">
+            <div className="absolute top-0 right-0 flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="gap-2 md:hidden"
+              >
+                Free Slots
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -102,7 +111,7 @@ export function Dashboard({ userName, userId, groupCode }: DashboardProps) {
                 ) : (
                   <>
                     <Share2 className="h-4 w-4" />
-                    Share Link
+                    <span className="hidden sm:inline">Share Link</span>
                   </>
                 )}
               </Button>
@@ -139,12 +148,47 @@ export function Dashboard({ userName, userId, groupCode }: DashboardProps) {
           </div>
         </div>
       </div>
-      <FreeSlotsSidebar 
-        freeSlots={freeSlots} 
-        weekStart={weekStart} 
-        memberCount={memberCount}
-        groupCode={groupCode}
-      />
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-50 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
+      <div className={`
+        ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}
+        md:translate-x-0
+        fixed md:relative
+        top-0 right-0
+        w-80 max-w-[85vw]
+        h-screen
+        bg-card
+        border-l
+        z-50
+        transition-transform
+        duration-300
+        ease-in-out
+        overflow-y-auto
+        shadow-lg md:shadow-none
+      `}>
+        <div className="md:hidden p-4 border-b flex items-center justify-between">
+          <h2 className="font-semibold">Common Free Slots</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        <FreeSlotsSidebar 
+          freeSlots={freeSlots} 
+          weekStart={weekStart} 
+          memberCount={memberCount}
+          groupCode={groupCode}
+        />
+      </div>
     </div>
   )
 }

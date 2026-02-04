@@ -434,7 +434,7 @@ export function Calendar({ currentUserId, currentUserName, groupCode, freeSlots:
       height: `${Math.max(height, 30)}px`,
       className: `${bgColor} border-l-2 absolute left-0 right-0 cursor-pointer hover:opacity-80 transition-opacity`,
     }
-  }, [getHourPosition, currentUserId])
+  }, [getHourPosition, currentUserId, visibleHours, expandedMorning])
 
   const getDraggingStyle = () => {
     if (!dragging) return null
@@ -450,7 +450,7 @@ export function Calendar({ currentUserId, currentUserName, groupCode, freeSlots:
     }
   }
 
-  const getFreeSlotStyle = (slot: FreeSlot) => {
+  const getFreeSlotStyle = useCallback((slot: FreeSlot) => {
     const top = getHourPosition(slot.startHour, slot.startMinute)
     const height =
       getHourPosition(slot.endHour, slot.endMinute) -
@@ -460,7 +460,7 @@ export function Calendar({ currentUserId, currentUserName, groupCode, freeSlots:
       top: `${top}px`,
       height: `${Math.max(height, 4)}px`,
     }
-  }
+  }, [getHourPosition, visibleHours, expandedMorning])
 
   return (
     <TooltipProvider delayDuration={200}>

@@ -18,8 +18,8 @@ export function FreeSlotsSidebar({ freeSlots, weekStart, memberCount, groupCode 
   // If only one person in group, show invite prompt
   if (memberCount <= 1) {
     return (
-      <div className="w-80 border-l bg-card h-screen overflow-y-auto sticky top-0">
-        <div className="p-6 space-y-6">
+      <div className="h-full">
+        <div className="p-4 md:p-6 space-y-6">
           <div>
             <h2 className="text-lg font-semibold mb-1">Common Free Slots</h2>
             <p className="text-sm text-muted-foreground">
@@ -78,8 +78,8 @@ export function FreeSlotsSidebar({ freeSlots, weekStart, memberCount, groupCode 
     }))
 
   return (
-    <div className="w-80 border-l bg-card h-screen overflow-y-auto sticky top-0">
-      <div className="p-6 space-y-6">
+    <div className="h-full">
+      <div className="p-4 md:p-6 space-y-6">
         <div>
           <h2 className="text-lg font-semibold mb-1">Common Free Slots</h2>
           <p className="text-sm text-muted-foreground">
