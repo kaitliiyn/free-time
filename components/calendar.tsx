@@ -79,11 +79,12 @@ export function Calendar({ currentUserId, currentUserName, groupCode, freeSlots:
   const calendarRef = useRef<HTMLDivElement>(null)
 
   // Show 6am-9pm (6-21) by default, plus morning/night when expanded
-  const visibleHours = [
+  // Memoize to prevent unnecessary re-renders and fix React hooks warnings
+  const visibleHours = useMemo(() => [
     ...(expandedMorning ? HOURS.filter(h => h >= 0 && h <= 5) : []),
     ...HOURS.filter(h => h >= 6 && h <= 21), // Always show 6am-9pm
     ...(expandedNight ? HOURS.filter(h => h >= 22 && h <= 23) : []),
-  ]
+  ], [expandedMorning, expandedNight])
 
   // Load blocks from Supabase and listen for changes
   const loadBlocks = useCallback(async () => {
