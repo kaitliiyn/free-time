@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Calendar as CalendarIcon, Share2, Check } from "lucide-react"
+import { Calendar as CalendarIcon, Share2, Check, AlertCircle } from "lucide-react"
 import { Calendar } from "@/components/calendar"
 import { FreeSlotsSidebar } from "@/components/free-slots-sidebar"
 import { GroupMembers } from "@/components/group-members"
@@ -9,6 +9,7 @@ import { type FreeSlot } from "@/lib/free-time-calculator"
 import { startOfWeek } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { groupState, type GroupMember } from "@/lib/group-state"
+import { isSupabaseConfigured } from "@/lib/supabase"
 
 interface DashboardProps {
   userName: string
@@ -62,10 +63,29 @@ export function Dashboard({ userName, userId, groupCode }: DashboardProps) {
     }
   }
 
+  const [supabaseConfigured, setSupabaseConfigured] = useState(true)
+
+  useEffect(() => {
+    setSupabaseConfigured(isSupabaseConfigured())
+  }, [])
+
   return (
     <div className="min-h-screen flex">
       <div className="flex-1 p-8 overflow-y-auto min-w-0">
         <div className="container max-w-7xl mx-auto space-y-8">
+          {!supabaseConfigured && (
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-sm p-4 mb-4">
+              <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
+                <AlertCircle className="h-5 w-5" />
+                <div>
+                  <p className="font-semibold">Supabase Not Configured</p>
+                  <p className="text-sm text-muted-foreground">
+                    Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables in Netlify.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           <header className="text-center mb-12 relative">
             <div className="absolute top-0 right-0">
               <Button

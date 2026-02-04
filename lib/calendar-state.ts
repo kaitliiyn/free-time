@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { supabase, isSupabaseConfigured } from './supabase'
 
 export interface BusyBlock {
   id: string
@@ -32,6 +32,11 @@ class CalendarState {
   }
 
   async getBlocks(groupCode: string): Promise<BusyBlock[]> {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.')
+      return []
+    }
+    
     try {
       const { data: schedules, error } = await supabase
         .from('schedules')
