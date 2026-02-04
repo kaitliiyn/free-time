@@ -94,6 +94,11 @@ class CalendarState {
   }
 
   async updateBlock(groupCode: string, id: string, updates: Partial<BusyBlock>): Promise<void> {
+    if (!isSupabaseConfigured()) {
+      console.error('Supabase is not configured. Cannot update block.')
+      return
+    }
+    
     try {
       const updateData: any = {}
       
@@ -120,6 +125,11 @@ class CalendarState {
   }
 
   async removeBlock(groupCode: string, id: string): Promise<void> {
+    if (!isSupabaseConfigured()) {
+      console.error('Supabase is not configured. Cannot remove block.')
+      return
+    }
+    
     try {
       const { error } = await supabase
         .from('schedules')

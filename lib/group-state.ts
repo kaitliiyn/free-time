@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { supabase, isSupabaseConfigured } from './supabase'
 
 export interface GroupMember {
   userId: string
@@ -14,6 +14,11 @@ export interface GroupData {
 
 class GroupState {
   async getGroup(groupCode: string): Promise<GroupData | null> {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase is not configured. Cannot fetch group.')
+      return null
+    }
+    
     try {
       // Fetch group
       const { data: group, error: groupError } = await supabase
@@ -54,6 +59,11 @@ class GroupState {
   }
 
   async createGroup(groupCode: string, userId: string, userName: string): Promise<GroupData | null> {
+    if (!isSupabaseConfigured()) {
+      console.error('Supabase is not configured. Cannot create group.')
+      return null
+    }
+    
     try {
       // Create group
       const { error: groupError } = await supabase
@@ -89,6 +99,11 @@ class GroupState {
   }
 
   async joinGroup(groupCode: string, userId: string, userName: string): Promise<GroupData | null> {
+    if (!isSupabaseConfigured()) {
+      console.error('Supabase is not configured. Cannot join group.')
+      return null
+    }
+    
     try {
       // Check if group exists
       const { data: group, error: groupError } = await supabase
